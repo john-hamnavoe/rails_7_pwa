@@ -89,6 +89,14 @@ https://dashboard.ngrok.com/get-started/setup
 
 You can use brew to install on a mac if you want. 
 
+### development.rb
+
+Add the following to `config/environments/development.rb`:
+
+```
+  config.hosts << /[a-z0-9.-]+\.ngrok\.io/
+```
+
 ### Run ngrok
 
 Run rails application as normal ./bin/dev

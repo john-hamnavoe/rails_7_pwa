@@ -5,3 +5,7 @@
 #
 #   movies = Movie.create([{ name: "Star Wars" }, { name: "Lord of the Rings" }])
 #   Character.create(name: "Luke", movie: movies.first)
+
+User.create!(name: "Scheduler", admin: true) unless User.find_by(name: "Scheduler")
+User.create!(name: "Driver A", admin: false) unless User.find_by(name: "Driver A")
+User.create!(name: "Driver B", admin: false) unless User.find_by(name: "Driver B")

@@ -1,4 +1,20 @@
 <div>
-  <h1 class="font-bold text-4xl">Welcome#index</h1>
-  <p>Find me in app/views/welcome/index.html.erb</p>
+  <h1 class="font-bold text-4xl mb-2">Welcome <%= current_user&.name %></h1>
+  <% if logged_in? %>
+    <%= link_to "Log Out", logout_path, data: { turbo_method: :delete },  class: "text-base font-semibold text-indigo-600 hover:text-indigo-500"%>  
+  <% else %>
+    <%= link_to users_path, class: "-m-3 flex items-center rounded-lg p-3 hover:bg-gray-50"  do %>
+      <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-indigo-500 text-white sm:h-12 sm:w-12">
+        <!-- Heroicon name: outline/shield-check -->
+        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+        </svg>
+      </div>
+      <div class="ml-4">
+        <p class="text-base font-medium text-gray-900">Select Role</p>
+        <p class="mt-1 text-sm text-gray-500">To get started select the role you want.</p>
+        <p class="mt-1 text-sm text-gray-500">Test as either a driver or scheduler.</p>
+      </div>
+    <% end %>
+  <% end %>
 </div>
