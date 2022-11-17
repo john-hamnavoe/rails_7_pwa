@@ -1,24 +1,109 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Rails 7 application that is PWA enabled. A few tweaks to drifting ruby approach on Rails 6 and webpacker, which was based a bit on serviceworker-rails gem.
 
-Things you may want to cover:
+## Rails 7 Setup
 
-* Ruby version
+* esbuild 
+* postgresql 
+* tailwindcss
 
-* System dependencies
+## PWA Changes
 
-* Configuration
+In order to get PWA to work with Rails 7, I had to make the following changes:
 
-* Database creation
+### Routes
 
-* Database initialization
+Add these routes to `config/routes.rb`:
+```
+  get '/service-worker.js', to: 'service_workers/workers#index'
+  get '/manifest.json', to: 'service_workers/manifests#index'
+```
 
-* How to run the test suite
+### Icons
 
-* Services (job queues, cache servers, search engines, etc.)
+Create a couple of icons sized 192x192 and 512x512 and place them in `app/assets/images/`
 
-* Deployment instructions
+### Service Workers Controllers
 
-* ...
+Create a `service_workers` folder in `app/controllers` and add the following files:
+
+`app/controllers/service_workers/workers_controller.rb`
+`app/controllers/service_workers/manifests_controller.rb`
+
+In the workers controller, add the following:
+
+```protect_from_forgery except: :index```
+
+### Service Workers Views
+
+Create a `service_workers` folder in `app/views` and add the following files:
+
+`app/views/service_workers/workers/index.js.erb`
+`app/views/service_workers/manifests/index.json.jbuilder`
+
+In the `index.js.erb` file need to use the following include js and css files:
+
+```<%= javascript_path "application" %>```  
+```<%= stylesheet_path "application" %>```
+
+(The other examples I found used asset_path but that didn't work for me in Rails 7)
+
+Refer to the code for the `index.json.jbuilder` file.
+
+### application.html.erb
+
+Add the following lines to the `app/layouts/application.html.erb` file:
+
+```
+    <link rel="manifest" crossorigin="use-credentials" href="/manifest.json">
+    <meta name="theme-color" content="#8e2731">
+```
+
+The cross origin was need to get ngrok to work with the manifest file. Otherwise it would throw an invalid manifest file error in the console. 
+
+### application.js
+
+Add the following lines to the `app/javascript/application.js` file:
+
+```
+if (navigator.serviceWorker) {
+  navigator.serviceWorker.register('/service-worker.js', { scope: './' })
+                         .then(function(registration) {
+                           console.log('[Companion]', 'Service worker registered!')
+                           console.log(registration)
+                         })
+}
+```
+
+## Testing with ngrok 
+
+I used ngrok to test as it will allow you to test with SSL. 
+
+### Install ngrok
+
+Simpliest to create free account with ngrok. 
+
+Then follow instractions here to install 
+https://dashboard.ngrok.com/get-started/setup
+
+You can use brew to install on a mac if you want. 
+
+### Run ngrok
+
+Run rails application as normal ./bin/dev
+
+Then run ngrok ./ngrok http 3000 in another terminal 
+
+There should be a https url that you can use to test the PWA shown in console something like this: 
+
+Forwarding                    https://ea35-99-999-99-999.eu.ngrok.io -> http://localhost:3000      
+
+### Test PWA
+
+Open the https url in chrome and you should see the PWA install prompt.
+
+### PWA Compliance 
+
+On chrome you can check the PWA compliance by going to the developer tools and clicking on the Lighthouse tab. Click the Analyze page load button and you should see the PWA compliance in the report. 
+
