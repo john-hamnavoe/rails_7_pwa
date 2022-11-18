@@ -7,7 +7,11 @@
   "dependencies": {
     "@hotwired/stimulus": "^3.1.1",
     "@hotwired/turbo-rails": "^7.2.4",
-    "esbuild": "^0.15.14"
+    "esbuild": "^0.15.14",
+    "workbox-cacheable-response": "^6.5.4",
+    "workbox-expiration": "^6.5.4",
+    "workbox-routing": "^6.5.4",
+    "workbox-strategies": "^6.5.4"
   },
   "scripts": {
     "build": "esbuild app/javascript/*.* --bundle --sourcemap --outdir=app/assets/builds"

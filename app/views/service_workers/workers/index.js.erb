@@ -1,58 +1,87 @@
+importScripts(
+  'https://storage.googleapis.com/workbox-cdn/releases/6.1.5/workbox-sw.js',
+);
 
-var CACHE_VERSION = 'v1';
-var CACHE_NAME = CACHE_VERSION + ':sw-cache-';
+workbox.setConfig({
+  debug: true,
+});
 
-function onInstall(event) {
-  console.log('[Serviceworker]', "Installing!", event);
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(function prefill(cache) {
-      return cache.addAll([
-        '<%= javascript_path "application" %>',
-        '<%= stylesheet_path "application" %>',
-      ]);
-    })
-  );
-}
+// Added the following 3 statements based on entry 15th May here. 
+// https://github.com/nuxt-community/pwa-module/issues/176
+// Seems to be more stable and reliable
+// Start controlling any existing clients as soon as it activates
+workbox.core.clientsClaim()
 
-function onActivate(event) {
-  console.log('[Serviceworker]', "Activating!", event);
-  event.waitUntil(
-    caches.keys().then(function(cacheNames) {
-      return Promise.all(
-        cacheNames.filter(function(cacheName) {
-          // Return true if you want to remove this cache,
-          // but remember that caches are shared across
-          // the whole origin
-          return cacheName.indexOf(CACHE_VERSION) !== 0;
-        }).map(function(cacheName) {
-          return caches.delete(cacheName);
-        })
-      );
-    })
-  );
-}
+// Skip over the SW waiting lifecycle stage
+self.skipWaiting()
 
-// Borrowed from https://github.com/TalAter/UpUp
-function onFetch(event) {
-  event.respondWith(
-    // try to return untouched request from network first
-    fetch(event.request).catch(function() {
-      // if it fails, try to return request from the cache
-      return caches.match(event.request).then(function(response) {
-        if (response) {
-          return response;
-        }
-        // if not found in cache, return default offline content for navigate requests
-        if (event.request.mode === 'navigate' ||
-          (event.request.method === 'GET' && event.request.headers.get('accept').includes('text/html'))) {
-          console.log('[Serviceworker]', "Fetching offline content", event);
-          return caches.match('/offline.html');
-        }
-      })
-    })
-  );
-}
+workbox.precaching.cleanupOutdatedCaches()
 
-self.addEventListener('install', onInstall);
-self.addEventListener('activate', onActivate);
-self.addEventListener('fetch', onFetch);
+// This will trigger the importScripts() for workbox.strategies and its dependencies:
+const {registerRoute} = workbox.routing;
+const {NetworkFirst, StaleWhileRevalidate, CacheFirst } = workbox.strategies;
+const {CacheableResponse, CacheableResponsePlugin} = workbox.cacheableResponse;
+const {ExpirationPlugin} = workbox.expiration;
+
+// List of routes to be cached
+const matchOffLineAvailable = ({url, request, event}) => {
+  console.log('matchOffLineAvailable', url, request, event);
+  //console.log((url.pathname === '/users' || url.pathname === '/' || url.pathname === '/schedules'));
+  return (url.pathname === '/users' || url.pathname === '/schedules' || url.pathname === '/');
+};
+
+// Loading pages (and turbolinks requests), checks the network first, then the cache
+// Having trouble with this one on first page load.  It seems to be working on subsequent page refreshes only.
+<%# registerRoute(
+  ({request}) => request.destination === "document" || (
+    request.destination === "" &&
+    request.mode === "cors" &&
+    request.headers.get('Turbolinks-Referrer') !== null
+  ),
+  new NetworkFirst({
+    cacheName: 'documents',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 5,
+        maxAgeSeconds: 5 * 60, // 5 minutes
+      }),
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+    ],
+  })
+); %>
+
+registerRoute(
+  matchOffLineAvailable,
+  new NetworkFirst({
+    cacheName: 'documents',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 5,
+        maxAgeSeconds: 5 * 60, // 5 minutes
+      }),
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+    ],
+  })
+);
+
+// Load CSS & JS from the Cache
+registerRoute(
+  ({request}) => request.destination === "script" ||
+  request.destination === "style",
+  new CacheFirst({
+    cacheName: 'assets-styles-and-scripts',
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 10,
+        maxAgeSeconds: 60 * 60 * 24 * 30, // 30 Days
+      }),
+      new CacheableResponsePlugin({
+        statuses: [0, 200],
+      }),
+    ],
+  })
+);

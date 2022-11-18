@@ -42,12 +42,12 @@ Create a `service_workers` folder in `app/views` and add the following files:
 `app/views/service_workers/workers/index.js.erb`
 `app/views/service_workers/manifests/index.json.jbuilder`
 
-In the `index.js.erb` file need to use the following include js and css files:
-
-```<%= javascript_path "application" %>```  
-```<%= stylesheet_path "application" %>```
-
-(The other examples I found used asset_path but that didn't work for me in Rails 7)
+In the `index.js.erb` file I used variation of approach from https://dev.to/mikerogers0/how-to-make-rails-work-offline-pwa-p05
+That was webpacker based, so I had to tweak it a bit to work with esbuild.
+It allowed for offline mode and caching of assets. Other examples were mostly about caching assets, but not offline mode.
+Also seemed that the NetworkFirst strategy was not working for me, a page would only go into cache after I refreshed it.
+So change registerRoute to use specific routes instead of what was there.
+Seems to work though workbox was throughing some errors in the console, so not yet 100% solid.
 
 Refer to the code for the `index.json.jbuilder` file.
 

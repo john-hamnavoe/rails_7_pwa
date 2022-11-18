@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  date: 2022-11-17
+  name: MyString
+  driver: one
+  complete: false
+
+two:
+  date: 2022-11-17
+  name: MyString
+  driver: two
+  complete: false

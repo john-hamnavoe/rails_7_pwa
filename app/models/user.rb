@@ -1,4 +1,5 @@
 class User < ApplicationRecord
+  has_many :schedules, foreign_key: 'driver_id', dependent: :restrict_with_error
   attr_accessor :remember_token
 
   def self.digest(string)
